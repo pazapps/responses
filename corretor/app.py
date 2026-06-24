@@ -169,33 +169,41 @@ if modo == "Gabarito Prévio (Manual)":
 st.title("🚀 Corretor de Provas Inteligente")
 st.write(f"Modo Atual: **{modo}**")
 
-uploaded_file = st.file_uploader("Envie a imagem da questão ou da prova", type=["jpg", "jpeg", "png"]) 
+# --- Controles principais: Upload | Colar | Captura | Câmera (cada um acionado por botão) ---
+if 'show_uploader' not in st.session_state:
+    st.session_state['show_uploader'] = False
+if 'camera_active' not in st.session_state:
+    st.session_state['camera_active'] = False
+if 'camera_image' not in st.session_state:
+    st.session_state['camera_image'] = None
 
-# Suporte para colar imagem do clipboard quando o Streamlit roda localmente
-if ImageGrab is not None:
-    if st.button("📋 Colar imagem do clipboard"):
-        try:
-            _p = ImageGrab.grabclipboard()
-            # Em alguns casos pode retornar lista de caminhos ou texto
-            if isinstance(_p, list):
-                _p = None
-            if _p is not None:
-                # Salva a imagem colada em session_state para persistir entre reruns
-                st.session_state['pasted_image'] = _p
-                st.success("Imagem colada no clipboard.")
-            else:
-                st.warning("Nenhuma imagem válida no clipboard.")
-        except Exception as e:
-            st.error(f"Erro ao acessar clipboard: {e}")
-
-    # Botão para abrir a Tesourinha do Windows e capturar uma região
-    if platform.system() == 'Windows':
-        if st.button("🖼️ Capturar tela (Tesourinha)"):
+cols = st.columns([1,1,1,1])
+with cols[0]:
+    if st.button("📁 Upload"):
+        st.session_state['show_uploader'] = not st.session_state['show_uploader']
+with cols[1]:
+    if ImageGrab is not None:
+        if st.button("📋 Colar"):
             try:
-                # Dispara o atalho do Windows para captura de tela
+                _p = ImageGrab.grabclipboard()
+                if isinstance(_p, list):
+                    _p = None
+                if _p is not None:
+                    st.session_state['pasted_image'] = _p
+                    st.success("Imagem colada no clipboard.")
+                else:
+                    st.warning("Nenhuma imagem válida no clipboard.")
+            except Exception as e:
+                st.error(f"Erro ao acessar clipboard: {e}")
+    else:
+        st.button("📋 Colar", disabled=True)
+with cols[2]:
+    # Captura de tela (Windows Tesourinha)
+    if platform.system() == 'Windows':
+        if st.button("🖼️ Capturar"):
+            try:
                 subprocess.Popen(["explorer.exe", "ms-screenclip:"])
                 st.info("Abra a Tesourinha e selecione a área. Aguardando imagem no clipboard...")
-                # tenta ler o clipboard por alguns instantes
                 grabbed = None
                 for _ in range(20):
                     time.sleep(0.3)
@@ -214,6 +222,28 @@ if ImageGrab is not None:
                     st.error("Nenhuma imagem encontrada no clipboard. Certifique-se de completar a captura na Tesourinha.")
             except Exception as e:
                 st.error(f"Erro ao abrir Tesourinha ou capturar: {e}")
+    else:
+        st.button("🖼️ Capturar", disabled=True)
+with cols[3]:
+    if st.button("📷 Câmera"):
+        st.session_state['camera_active'] = not st.session_state['camera_active']
+
+# Mostrar uploader condicionalmente quando usuário clicar em Upload
+uploaded_file = None
+if st.session_state['show_uploader']:
+    uploaded_file = st.file_uploader("Envie a imagem da questão ou da prova", type=["jpg", "jpeg", "png"]) 
+
+# Mostrar câmera quando ativada
+if st.session_state['camera_active']:
+    cam = st.camera_input("Tire uma foto da prova (use a câmera do dispositivo)")
+    if cam is not None:
+        try:
+            st.session_state['camera_image'] = Image.open(cam)
+            st.success("Foto capturada e carregada.")
+            # after capture, optionally hide camera
+            st.session_state['camera_active'] = False
+        except Exception as e:
+            st.error(f"Erro ao processar imagem da câmera: {e}")
 
 # Prioriza upload do usuário; se não houver, usa imagem colada (persistida em session_state)
 img = None
