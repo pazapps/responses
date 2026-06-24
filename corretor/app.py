@@ -25,7 +25,7 @@ def log_event(msg: str):
 # Configuração da Página
 st.set_page_config(page_title="IA Corretor Pro", layout="wide", page_icon="🎓")
 
-# --- ESTILIZAÇÃO RESPONSIVA ---
+# --- ESTILIZAÇÃO RESPONSIVA E PROFISSIONAL ---
 st.markdown(
     """
     <style>
@@ -42,19 +42,35 @@ st.markdown(
     .stApp { color: #e6eef8; font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
     .css-1v3fvcr .main, .stApp>div { background: transparent }
     .stSidebar { backdrop-filter: blur(8px); background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:12px }
+    
+    /* Professional button grid: uniform sizing + 2x2 layout */
+    .stButton { flex: 1; margin: 8px 4px }
     .stButton>button {
-        width:100%; border-radius:12px; height:3.2em; background: linear-gradient(90deg,var(--accent1),var(--accent2)); color: #021022; font-weight:700; border: none;
-        box-shadow: 0 6px 18px rgba(123,47,247,0.12); transition: transform .12s ease, box-shadow .12s ease;
+        width: 100%; aspect-ratio: 1 / 0.7; border-radius: 12px;
+        background: linear-gradient(135deg, var(--accent1), var(--accent2));
+        color: #021022; font-weight: 700; font-size: 15px; border: none;
+        box-shadow: 0 8px 24px rgba(123,47,247,0.14);
+        transition: all .16s cubic-bezier(0.34, 1.56, 0.64, 1);
+        cursor: pointer; display: flex; align-items: center; justify-content: center;
+        text-align: center; padding: 0 !important;
     }
-    .stButton>button:hover{ transform: translateY(-4px); box-shadow: 0 18px 36px rgba(123,47,247,0.14); }
+    .stButton>button:hover{
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(123,47,247,0.18);
+        background: linear-gradient(135deg, #5ad8ff, #8b3fff);
+    }
+    .stButton>button:active{ transform: translateY(-2px); }
+    
+    /* Camera: bounded, landscape aspect, no overflow */
+    .stCamera { max-width: 100%; max-height: 70vh; margin: 0 auto; border-radius: 12px; overflow: hidden; }
+    .stCamera video { width: 100%; height: auto; max-height: 70vh; object-fit: contain; aspect-ratio: 16/9; }
+    .stCamera canvas { width: 100%; height: auto; max-height: 70vh; object-fit: contain; aspect-ratio: 16/9; }
+    
     .result-card{ padding:20px; border-radius:14px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.03); box-shadow: 0 8px 30px rgba(2,6,23,0.6); }
     .big-title{font-size:30px; font-weight:700; margin-bottom:6px; color: #eaf6ff}
     .muted{color:var(--muted); font-size:14px}
     .stTextInput>div>input, .stTextArea>div>textarea{background:transparent;color:#e6eef8;border:1px solid rgba(255,255,255,0.03); border-radius:8px;padding:10px}
-    @media (max-width:600px){ .stButton>button{height:3.8em; font-size:15px} .result-card{padding:12px} .big-title{font-size:22px} }
-    /* Camera fullscreen helper */
-    .stCamera { position: fixed !important; inset: 0 0 0 0; width:100vw !important; height:100vh !important; z-index:9999; background: #000; display:flex; align-items:center; justify-content:center }
-    .stCamera video { width:100%; height:100%; object-fit:cover }
+    @media (max-width:600px){ .stButton>button{font-size:13px} .result-card{padding:12px} .big-title{font-size:22px} }
     </style>
     """,
     unsafe_allow_html=True,
@@ -246,13 +262,21 @@ if 'camera_active' not in st.session_state:
 if 'camera_image' not in st.session_state:
     st.session_state['camera_image'] = None
 
-cols = st.columns([1,1,1,1])
-with cols[0]:
-    if st.button("Upload"):
+# Grid de botões 2x2 centralizado
+st.write("")  # espaçamento
+col_left, col_mid, col_right = st.columns([0.5, 3, 0.5])
+with col_mid:
+    row1_col1, row1_col2 = st.columns(2, gap="medium")
+    row2_col1, row2_col2 = st.columns(2, gap="medium")
+
+# Linha 1
+with row1_col1:
+    if st.button("Upload", use_container_width=True):
         st.session_state['show_uploader'] = not st.session_state['show_uploader']
-with cols[1]:
+
+with row1_col2:
     if ImageGrab is not None:
-        if st.button("Colar"):
+        if st.button("Colar", use_container_width=True):
             try:
                 _p = ImageGrab.grabclipboard()
                 if isinstance(_p, list):
@@ -265,11 +289,12 @@ with cols[1]:
             except Exception as e:
                 st.error(f"Erro ao acessar clipboard: {e}")
     else:
-        st.button("Colar", disabled=True)
-with cols[2]:
-    # Captura de tela (Windows Tesourinha)
+        st.button("Colar", disabled=True, use_container_width=True)
+
+# Linha 2
+with row2_col1:
     if platform.system() == 'Windows':
-        if st.button("Captura de tela"):
+        if st.button("Captura de tela", use_container_width=True):
             try:
                 subprocess.Popen(["explorer.exe", "ms-screenclip:"])
                 st.info("Abra a Tesourinha e selecione a área. Aguardando imagem no clipboard...")
@@ -292,9 +317,10 @@ with cols[2]:
             except Exception as e:
                 st.error(f"Erro ao abrir Tesourinha ou capturar: {e}")
     else:
-        st.button("Captura de tela", disabled=True)
-with cols[3]:
-    if st.button("Câmera"):
+        st.button("Captura de tela", disabled=True, use_container_width=True)
+
+with row2_col2:
+    if st.button("Câmera", use_container_width=True):
         st.session_state['camera_active'] = not st.session_state['camera_active']
 
 # Mostrar uploader condicionalmente quando usuário clicar em Upload
@@ -304,16 +330,7 @@ if st.session_state['show_uploader']:
 
 # Mostrar câmera quando ativada
 if st.session_state['camera_active']:
-    # Make camera area occupy most of the viewport on mobile by adding CSS
-    st.markdown(
-        """
-        <style>
-        .stCamera { position: fixed !important; inset: 0 0 0 0; width:100vw !important; height:100vh !important; z-index:9999; background: #000; display:flex; align-items:center; justify-content:center }
-        .stCamera video { width:100%; height:100%; object-fit:cover }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.write("")  # espaçamento
     cam = st.camera_input("Capturar foto da prova")
     if cam is not None:
         try:
