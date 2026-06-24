@@ -25,52 +25,70 @@ def log_event(msg: str):
 # Configuração da Página
 st.set_page_config(page_title="IA Corretor Pro", layout="wide", page_icon="🎓")
 
-# --- ESTILIZAÇÃO RESPONSIVA E PROFISSIONAL ---
+# --- ESTILIZAÇÃO MINIMALISTA E MODERNA ---
 st.markdown(
     """
     <style>
-    :root{
-      --bg1: #0b1220;
-      --bg2: #071122;
-      --card: rgba(255,255,255,0.04);
-      --glass: rgba(255,255,255,0.03);
-      --accent1: #4cc9f0;
-      --accent2: #7b2ff7;
-      --muted: #9aa7b2;
-    }
-    html,body,#root{background:linear-gradient(180deg,var(--bg1) 0%, var(--bg2) 100%);}
-    .stApp { color: #e6eef8; font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
-    .css-1v3fvcr .main, .stApp>div { background: transparent }
-    .stSidebar { backdrop-filter: blur(8px); background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:12px }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body, #root { background: #f8f9fa; }
+    .stApp { color: #1a1a1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
     
-    /* Professional button grid: uniform sizing + 2x2 layout */
-    .stButton { flex: 1; margin: 8px 4px }
+    /* Header clean */
+    .stApp>div:first-child { background: #ffffff; border-bottom: 1px solid #e8e8e8; padding: 20px 0 !important; }
+    
+    /* Main content clean */
+    .stApp>div:not(:first-child) { background: #f8f9fa; }
+    
+    /* Buttons: minimalista e responsivo */
+    .stButton { margin: 6px 4px; }
     .stButton>button {
-        width: 100%; aspect-ratio: 1 / 0.7; border-radius: 12px;
-        background: linear-gradient(135deg, var(--accent1), var(--accent2));
-        color: #021022; font-weight: 700; font-size: 15px; border: none;
-        box-shadow: 0 8px 24px rgba(123,47,247,0.14);
-        transition: all .16s cubic-bezier(0.34, 1.56, 0.64, 1);
-        cursor: pointer; display: flex; align-items: center; justify-content: center;
-        text-align: center; padding: 0 !important;
+        width: 100%; padding: 14px 16px !important; border-radius: 8px; font-size: 14px; font-weight: 500;
+        background: #2563eb; color: white; border: none;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        transition: all 0.15s ease;
+        cursor: pointer;
     }
-    .stButton>button:hover{
-        transform: translateY(-6px) scale(1.02);
-        box-shadow: 0 20px 40px rgba(123,47,247,0.18);
-        background: linear-gradient(135deg, #5ad8ff, #8b3fff);
+    .stButton>button:hover {
+        background: #1d4ed8;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+        transform: translateY(-1px);
     }
-    .stButton>button:active{ transform: translateY(-2px); }
+    .stButton>button:disabled {
+        background: #d1d5db;
+        cursor: not-allowed;
+        transform: none;
+    }
     
-    /* Camera: bounded, landscape aspect, no overflow */
-    .stCamera { max-width: 100%; max-height: 70vh; margin: 0 auto; border-radius: 12px; overflow: hidden; }
-    .stCamera video { width: 100%; height: auto; max-height: 70vh; object-fit: contain; aspect-ratio: 16/9; }
-    .stCamera canvas { width: 100%; height: auto; max-height: 70vh; object-fit: contain; aspect-ratio: 16/9; }
+    /* Input fields clean */
+    .stFileUploader label, .stCameraInput label { font-weight: 500; font-size: 13px; color: #6b7280; }
     
-    .result-card{ padding:20px; border-radius:14px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.03); box-shadow: 0 8px 30px rgba(2,6,23,0.6); }
-    .big-title{font-size:30px; font-weight:700; margin-bottom:6px; color: #eaf6ff}
-    .muted{color:var(--muted); font-size:14px}
-    .stTextInput>div>input, .stTextArea>div>textarea{background:transparent;color:#e6eef8;border:1px solid rgba(255,255,255,0.03); border-radius:8px;padding:10px}
-    @media (max-width:600px){ .stButton>button{font-size:13px} .result-card{padding:12px} .big-title{font-size:22px} }
+    /* Camera: landscape forced, bounded, responsive */
+    .stCamera { max-width: 100%; height: auto; margin: 16px 0; border-radius: 8px; overflow: hidden; }
+    .stCamera video { 
+        width: 100%; height: auto; max-height: 60vh; object-fit: contain;
+        aspect-ratio: 16 / 9;
+        display: block;
+    }
+    .stCamera canvas { 
+        width: 100%; height: auto; max-height: 60vh; object-fit: contain;
+        aspect-ratio: 16 / 9;
+        display: block;
+    }
+    
+    /* Messages & alerts clean */
+    .stSuccess, .stError, .stWarning, .stInfo { border-radius: 8px; font-size: 13px; }
+    .stSuccess { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .stError { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    
+    /* Spacing */
+    .stMarkdown, .stText { line-height: 1.5; }
+    
+    /* Responsive */
+    @media (max-width: 640px) {
+        .stApp { font-size: 13px; }
+        .stButton>button { padding: 12px 14px !important; font-size: 13px; }
+        .stCamera video, .stCamera canvas { max-height: 50vh; }
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -140,9 +158,11 @@ def call_gemini_vision(image, prompt):
 
 
 def display_result_formatted(resultado: str):
-    """Exibe o resultado da IA de forma mais legível e colorida."""
+    """Exibe o resultado da IA de forma limpa e legível."""
+    st.write("")  # espaço
+    st.divider()
+    
     try:
-        # Tentar parsear linhas chave: value
         lines = [l.strip() for l in resultado.splitlines() if l.strip()]
         parsed = {}
         for l in lines:
@@ -150,29 +170,23 @@ def display_result_formatted(resultado: str):
             if m:
                 parsed[m.group('k').strip().upper()] = m.group('v').strip()
 
-        # Exibição elegante
         if 'GABARITO DA IA' in parsed or 'GABARITO' in parsed:
             gab = parsed.get('GABARITO DA IA', parsed.get('GABARITO'))
-            st.markdown(f"**Gabarito (IA):** <span style='color:#0a7f00; font-weight:700'>{gab}</span>", unsafe_allow_html=True)
+            st.markdown(f"### ✓ Gabarito: **{gab}**")
 
-        if 'RESUMO' in parsed:
-            resumo = parsed['RESUMO']
-            st.markdown(f"<div style='background:#fff8e1;padding:10px;border-radius:6px'>{resumo}</div>", unsafe_allow_html=True)
-        else:
-            # tenta juntar outras linhas como corpo
-            body = '\n'.join(lines)
-            st.markdown(f"<div style='background:#f6f8fa;padding:10px;border-radius:6px;white-space:pre-wrap'>{body}</div>", unsafe_allow_html=True)
+        body = parsed.get('RESUMO') if 'RESUMO' in parsed else '\n'.join(lines)
+        st.write(body)
 
         status = parsed.get('STATUS DO ALUNO', parsed.get('STATUS'))
         if status:
             if 'ACERT' in status.upper():
-                st.success(f"Status do aluno: {status}")
+                st.success(f"Status: {status}")
             elif 'ERR' in status.upper():
-                st.error(f"Status do aluno: {status}")
+                st.error(f"Status: {status}")
             else:
-                st.info(f"Status do aluno: {status}")
+                st.info(f"Status: {status}")
     except Exception:
-        st.text(resultado)
+        st.write(resultado)
 
 
 def run_analysis_on_image(img):
@@ -251,8 +265,9 @@ if modo == "Gabarito Prévio (Manual)":
             gabarito_oficial[str(i)] = st.selectbox(f"Q{i}", ["A", "B", "C", "D", "E"], key=f"gab_{i}")
 
 # --- ÁREA PRINCIPAL ---
-st.title("Corretor Pro — Correção Automatizada")
-st.write(f"Modo Atual: **{modo}**")
+st.title("Corretor Pro")
+st.caption(f"Modo: {modo}")
+st.divider()
 
 # --- Controles principais: Upload | Colar | Captura | Câmera (cada um acionado por botão) ---
 if 'show_uploader' not in st.session_state:
@@ -262,42 +277,40 @@ if 'camera_active' not in st.session_state:
 if 'camera_image' not in st.session_state:
     st.session_state['camera_image'] = None
 
-# Grid de botões 2x2 centralizado
-st.write("")  # espaçamento
-col_left, col_mid, col_right = st.columns([0.5, 3, 0.5])
-with col_mid:
-    row1_col1, row1_col2 = st.columns(2, gap="medium")
-    row2_col1, row2_col2 = st.columns(2, gap="medium")
+# Grid de botões 2x2 simples e limpo
+st.write("")  # espaço pequeno
+row1_col1, row1_col2 = st.columns(2, gap="small")
+row2_col1, row2_col2 = st.columns(2, gap="small")
 
 # Linha 1
 with row1_col1:
-    if st.button("Upload", use_container_width=True):
+    if st.button("📤 Upload", use_container_width=True):
         st.session_state['show_uploader'] = not st.session_state['show_uploader']
 
 with row1_col2:
     if ImageGrab is not None:
-        if st.button("Colar", use_container_width=True):
+        if st.button("📋 Colar", use_container_width=True):
             try:
                 _p = ImageGrab.grabclipboard()
                 if isinstance(_p, list):
                     _p = None
                 if _p is not None:
                     st.session_state['pasted_image'] = _p
-                    st.success("Imagem colada no clipboard.")
+                    st.success("Imagem colada.")
                 else:
-                    st.warning("Nenhuma imagem válida no clipboard.")
+                    st.warning("Nenhuma imagem no clipboard.")
             except Exception as e:
                 st.error(f"Erro ao acessar clipboard: {e}")
     else:
-        st.button("Colar", disabled=True, use_container_width=True)
+        st.button("📋 Colar", disabled=True, use_container_width=True)
 
 # Linha 2
 with row2_col1:
     if platform.system() == 'Windows':
-        if st.button("Captura de tela", use_container_width=True):
+        if st.button("🖼️ Captura", use_container_width=True):
             try:
                 subprocess.Popen(["explorer.exe", "ms-screenclip:"])
-                st.info("Abra a Tesourinha e selecione a área. Aguardando imagem no clipboard...")
+                st.info("Use a Tesourinha para capturar.")
                 grabbed = None
                 for _ in range(20):
                     time.sleep(0.3)
@@ -311,37 +324,37 @@ with row2_col1:
 
                 if grabbed is not None:
                     st.session_state['pasted_image'] = grabbed
-                    st.success("Captura salva no clipboard e carregada no app.")
+                    st.success("Captura realizada.")
                 else:
-                    st.error("Nenhuma imagem encontrada no clipboard. Certifique-se de completar a captura na Tesourinha.")
+                    st.error("Nenhuma imagem capturada.")
             except Exception as e:
-                st.error(f"Erro ao abrir Tesourinha ou capturar: {e}")
+                st.error(f"Erro ao capturar: {e}")
     else:
-        st.button("Captura de tela", disabled=True, use_container_width=True)
+        st.button("🖼️ Captura", disabled=True, use_container_width=True)
 
 with row2_col2:
-    if st.button("Câmera", use_container_width=True):
+    if st.button("📷 Câmera", use_container_width=True):
         st.session_state['camera_active'] = not st.session_state['camera_active']
 
-# Mostrar uploader condicionalmente quando usuário clicar em Upload
+st.write("")  # espaço
+
+# Mostrar uploader condicionalmente
 uploaded_file = None
 if st.session_state['show_uploader']:
-    uploaded_file = st.file_uploader("Enviar imagem da prova", type=["jpg", "jpeg", "png"]) 
+    uploaded_file = st.file_uploader("Enviar imagem", type=["jpg", "jpeg", "png"]) 
 
 # Mostrar câmera quando ativada
 if st.session_state['camera_active']:
-    st.write("")  # espaçamento
-    cam = st.camera_input("Capturar foto da prova")
+    st.write("")  # espaço
+    cam = st.camera_input("Capturar foto")
     if cam is not None:
         try:
             st.session_state['camera_image'] = Image.open(cam)
-            st.success("Foto capturada e carregada.")
-            # close camera UI
+            st.success("Foto capturada.")
             st.session_state['camera_active'] = False
-            # automaticamente iniciar análise após captura
             run_analysis_on_image(st.session_state['camera_image'])
         except Exception as e:
-            st.error(f"Erro ao processar imagem da câmera: {e}")
+            st.error(f"Erro ao processar imagem: {e}")
 
 # Prioriza upload do usuário; se não houver, usa câmera capturada ou imagem colada (persistida em session_state)
 img = None
@@ -358,10 +371,11 @@ elif pasted is not None:
     img = pasted
 
 if img is not None:
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        st.image(img, caption="Imagem Carregada", width=400)
-
+    st.write("")  # espaço
+    st.image(img, use_column_width=True)
+    st.divider()
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        if st.button("Analisar e corrigir"):
+        if st.button("Analisar", use_container_width=True):
             run_analysis_on_image(img)
