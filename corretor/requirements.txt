@@ -1,5 +1,6 @@
 streamlit==1.58.0
 google-generativeai==0.8.6
-pillow==9.5.0
+# Allow a Pillow wheel compatible with the build environment (don't force an old source-only version)
+pillow>=9.5.0
 numpy==2.5.0
 requests
