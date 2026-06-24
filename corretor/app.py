@@ -333,17 +333,7 @@ with row2_col1:
 
 with row2_col2:
     if st.button("Câmera", use_container_width=True):
-        # Open custom camera component that prefers the rear camera
-        try:
-            from camera_component import camera_component
-            data = camera_component(key='rear_cam', height=800)
-            if data:
-                header, b64 = data.split(',', 1) if ',' in data else (None, data)
-                img_bytes = base64.b64decode(b64)
-                st.session_state['camera_image'] = Image.open(io.BytesIO(img_bytes)).convert('RGB')
-                run_analysis_on_image(st.session_state['camera_image'])
-        except Exception as e:
-            st.error(f"Erro ao abrir a câmera: {e}")
+        st.session_state['open_rear_cam'] = True
 
 st.write("")  # espaço
 
@@ -353,77 +343,18 @@ if st.session_state['show_uploader']:
     uploaded_file = st.file_uploader("Enviar imagem", type=["jpg", "jpeg", "png"]) 
 
 # Mostrar câmera quando ativada
-if st.session_state['camera_active']:
-    # Fullscreen camera modal with Confirm/Redo
-    if 'camera_flash' not in st.session_state:
-        st.session_state['camera_flash'] = False
-
-    # Inject CSS to make camera input fullscreen and dark background
-        st.markdown(
-                """
-                <style>
-                /* Fullscreen overlay */
-                .stCameraOverlay { position: fixed !important; inset: 0 0 0 0; width:100vw !important; height:100vh !important; z-index:9998; background: rgba(0,0,0,0.92); display:block }
-                /* Force any video element to cover the viewport */
-                video { position: fixed !important; top:0; left:0; width:100vw !important; height:100vh !important; object-fit:cover; z-index:9999 }
-                /* Controls styling will be applied via JS to avoid Streamlit class issues */
-                .shutter { position: fixed; inset:0; background: #fff; opacity:0; z-index:11000 }
-                .shutter.flash { animation: flash 0.35s ease; }
-                @keyframes flash { 0%{opacity:0} 40%{opacity:1} 100%{opacity:0} }
-                </style>
-
-                <script>
-                // Periodically style the Confirmar and Refazer buttons to be fixed on screen
-                function styleCameraButtons(){
-                    document.querySelectorAll('button').forEach(b=>{
-                        const txt = b.innerText ? b.innerText.trim() : '';
-                        if(txt === 'Confirmar'){
-                            Object.assign(b.style, {position:'fixed', right:'20px', bottom:'80px', zIndex:10001, padding:'12px 18px', borderRadius:'8px', background:'#ffffff', color:'#0b1220', border:'none', fontWeight:600});
-                        }
-                        if(txt === 'Refazer'){
-                            Object.assign(b.style, {position:'fixed', left:'20px', bottom:'80px', zIndex:10001, padding:'12px 18px', borderRadius:'8px', background:'transparent', border:'1px solid rgba(255,255,255,0.12)', color:'#ffffff'});
-                        }
-                    });
-                }
-                setInterval(styleCameraButtons, 350);
-                </script>
-                """,
-                unsafe_allow_html=True,
-        )
-
-    cam = st.camera_input("", key="camera_modal_input")
-
-    # Preview frame and controls
-    if cam is not None:
-        try:
-            # keep bytes to allow re-open if needed
-            cam_bytes = cam.getvalue()
-            pil_img = Image.open(io.BytesIO(cam_bytes)).convert('RGB')
-            st.image(pil_img, use_column_width=True)
-
-            # Controls: Confirm or Redo
-            cols = st.columns([1,1,1,1,1])
-            with cols[1]:
-                if st.button("Refazer", key="camera_redo"):
-                    # Clear temporary camera input by deleting session key
-                    if 'camera_modal_input' in st.session_state:
-                        del st.session_state['camera_modal_input']
-                    st.experimental_rerun()
-            with cols[3]:
-                if st.button("Confirmar", key="camera_confirm"):
-                    # flash effect
-                    st.session_state['camera_flash'] = True
-                    st.markdown('<div class="shutter flash"></div>', unsafe_allow_html=True)
-                    time.sleep(0.35)
-                    st.session_state['camera_flash'] = False
-                    # save image and close modal
-                    st.session_state['camera_image'] = pil_img
-                    st.session_state['camera_active'] = False
-                    # run analysis
-                    run_analysis_on_image(st.session_state['camera_image'])
-
-        except Exception as e:
-            st.error(f"Erro ao processar imagem da câmera: {e}")
+if st.session_state.get('open_rear_cam', False):
+    try:
+        from camera_component import camera_component
+        data = camera_component(key='rear_cam', height=900)
+        if data:
+            header, b64 = data.split(',', 1) if ',' in data else (None, data)
+            img_bytes = base64.b64decode(b64)
+            st.session_state['camera_image'] = Image.open(io.BytesIO(img_bytes)).convert('RGB')
+            st.session_state['open_rear_cam'] = False
+            run_analysis_on_image(st.session_state['camera_image'])
+    except Exception as e:
+        st.error(f"Erro ao abrir a câmera: {e}")
 
 # Prioriza upload do usuário; se não houver, usa câmera capturada ou imagem colada (persistida em session_state)
 img = None
