@@ -327,6 +327,9 @@ with row2_col1:
 with row2_col2:
     if st.button("Câmera", use_container_width=True):
         st.session_state['open_rear_cam'] = True
+    # Force fallback for devices/browsers that block getUserMedia in iframes
+    if st.button("Abrir câmera (fallback)", use_container_width=True):
+        st.session_state['use_st_camera_input'] = True
 
 st.write("")  # espaço
 
