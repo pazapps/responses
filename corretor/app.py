@@ -241,11 +241,11 @@ def run_analysis_on_image(img):
 
 # --- INTERFACE LATERAL ---
 st.sidebar.title("Modo de Operação")
-modo = st.sidebar.radio("Selecione como corrigir:", 
-                         ["IA Resolve (Bancas/Concursos)", "Gabarito Prévio (Manual)"])
+# Fixed mode per project requirements
+modo = "IA Resolve (Bancas/Concursos)"
 
-# Debug: modo que não chama a API (retorna resposta simulada)
-debug_mode = st.sidebar.checkbox("Modo Depuração (usar resposta simulada)", value=False)
+# Debug mode removed
+debug_mode = False
 
 # Permite ao usuário definir qual modelo usar
 MODEL_TO_USE = st.sidebar.text_input("Modelo (ex: gemini-2.5-flash or models/gemini-2.5-flash)", value=DEFAULT_MODEL)
@@ -253,15 +253,8 @@ MODEL_TO_USE = st.sidebar.text_input("Modelo (ex: gemini-2.5-flash or models/gem
 if MODEL_TO_USE and not MODEL_TO_USE.startswith("models/"):
     MODEL_TO_USE = "models/" + MODEL_TO_USE
 
+# No manual gabarito
 gabarito_oficial = {}
-
-if modo == "Gabarito Prévio (Manual)":
-    st.sidebar.subheader("Configurar Gabarito")
-    num_questoes = st.sidebar.number_input("Total de questões", 1, 50, 5)
-    cols = st.sidebar.columns(2)
-    for i in range(1, num_questoes + 1):
-        with cols[(i-1)%2]:
-            gabarito_oficial[str(i)] = st.selectbox(f"Q{i}", ["A", "B", "C", "D", "E"], key=f"gab_{i}")
 
 # --- ÁREA PRINCIPAL ---
 st.title("Corretor Pro")
@@ -306,7 +299,7 @@ with row1_col2:
 # Linha 2
 with row2_col1:
     if platform.system() == 'Windows':
-        if st.button("🖼️ Captura", use_container_width=True):
+        if st.button("Captura", use_container_width=True):
             try:
                 subprocess.Popen(["explorer.exe", "ms-screenclip:"])
                 st.info("Use a Tesourinha para capturar.")
