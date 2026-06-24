@@ -24,6 +24,7 @@
   <body>
     <div id="overlay">
       <video id="video" autoplay playsinline></video>
+      <!-- startOverlay removed for testing: camera will start immediately -->
       <canvas id="canvas" style="display:none"></canvas>
       <div id="preview">
         <img id="previewImg" />
@@ -169,7 +170,7 @@
         stopCamera();
       });
 
-      // start immediately
+      // Start immediately for testing (no fullscreen gesture)
       startCamera();
 
       // Cleanup when Streamlit tells us to unmount
