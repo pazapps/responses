@@ -25,7 +25,7 @@ def log_event(msg: str):
         pass
 
 # Configuração da Página
-st.set_page_config(page_title="IA Corretor Pro", layout="wide", page_icon="🎓")
+st.set_page_config(page_title="PASSEAI", layout="wide", page_icon="🎯")
 
 # --- ESTILIZAÇÃO MINIMALISTA E MODERNA ---
 st.markdown(
@@ -198,26 +198,19 @@ def run_analysis_on_image(img):
         try:
             log_event("analysis button clicked")
 
-            if modo == "IA Resolve (Bancas/Concursos)":
-                prompt = """
-                Você é um professor especialista em concursos públicos. 
-                Analise a imagem da questão enviada:
-                1. Identifique o enunciado e as alternativas.
-                2. Resolva a questão passo a passo.
-                3. Indique claramente qual é a ALTERNATIVA CORRETA.
-                4. Se houver algo marcado pelo aluno (ex: um círculo ou X), identifique se ele acertou ou errou.
-                Retorne no formato:
-                GABARITO DA IA: [Letra]
-                RESUMO: [Breve explicação do porquê]
-                STATUS DO ALUNO: [Acertou/Errou/Não identificado]
-                """
-            else:
-                prompt = f"""
-                Esta imagem contém respostas de um aluno. 
-                Extraia as alternativas marcadas para as questões. 
-                Gabarito esperado: {gabarito_oficial}
-                Retorne uma lista formatada de cada questão e se o aluno acertou baseado no gabarito fornecido.
-                """
+            # Default prompt: analyze as exam/contest question and return answer + status
+            prompt = """
+            Você é um professor especialista em concursos públicos.
+            Analise a imagem da questão enviada:
+            1. Identifique o enunciado e as alternativas.
+            2. Resolva a questão passo a passo.
+            3. Indique claramente qual é a ALTERNATIVA CORRETA.
+            4. Se houver marcações do aluno, identifique se acertou ou errou.
+            Retorne no formato:
+            GABARITO DA IA: [Letra]
+            RESUMO: [Breve explicação]
+            STATUS DO ALUNO: [Acertou/Errou/Não identificado]
+            """
 
             if debug_mode:
                 resultado = "GABARITO DA IA: A\nRESUMO: Resposta simulada em modo de depuração.\nSTATUS DO ALUNO: Não identificado"
@@ -239,29 +232,17 @@ def run_analysis_on_image(img):
     else:
         st.info("Nenhum resultado retornado pela análise.")
 
-# --- INTERFACE LATERAL ---
-st.sidebar.title("Modo de Operação")
-# Fixed mode per project requirements
-modo = "IA Resolve (Bancas/Concursos)"
-
-# Debug mode removed
+# Minimal configuration: keep model selection in sidebar, remove 'Modo de Operação'
 debug_mode = False
-
-# Permite ao usuário definir qual modelo usar
 MODEL_TO_USE = st.sidebar.text_input("Modelo (ex: gemini-2.5-flash or models/gemini-2.5-flash)", value=DEFAULT_MODEL)
-# Normaliza o nome: garante prefixo 'models/' se o usuário não colocar
 if MODEL_TO_USE and not MODEL_TO_USE.startswith("models/"):
     MODEL_TO_USE = "models/" + MODEL_TO_USE
-
-# No manual gabarito
 gabarito_oficial = {}
 
 # --- ÁREA PRINCIPAL ---
-st.title("Corretor Pro")
-st.caption(f"Modo: {modo}")
+st.title("PASSEAI")
 st.divider()
 
-# --- Controles principais: Upload | Colar | Captura | Câmera (cada um acionado por botão) ---
 if 'show_uploader' not in st.session_state:
     st.session_state['show_uploader'] = False
 if 'camera_active' not in st.session_state:
@@ -269,7 +250,7 @@ if 'camera_active' not in st.session_state:
 if 'camera_image' not in st.session_state:
     st.session_state['camera_image'] = None
 
-# Grid de botões 2x2 simples e limpo
+# Grid de botões 2x2 simples e limpo (Upload | Colar | Captura | Câmera)
 st.write("")  # espaço pequeno
 row1_col1, row1_col2 = st.columns(2, gap="small")
 row2_col1, row2_col2 = st.columns(2, gap="small")
@@ -327,9 +308,6 @@ with row2_col1:
 with row2_col2:
     if st.button("Câmera", use_container_width=True):
         st.session_state['open_rear_cam'] = True
-    # Force fallback for devices/browsers that block getUserMedia in iframes
-    if st.button("Abrir câmera (fallback)", use_container_width=True):
-        st.session_state['use_st_camera_input'] = True
 
 st.write("")  # espaço
 
@@ -354,55 +332,16 @@ if st.session_state.get('open_rear_cam', False):
         st.info("Possíveis causas: 'pyarrow' não instalado no ambiente usado pelo Streamlit, ou o navegador bloqueia vídeo dentro de iframes.")
         st.markdown("- Se você instalou `pyarrow` agora, pare o servidor e execute `streamlit run app.py` novamente.\n- Verifique permissões de câmera no navegador (permitir câmera, HTTPS).\n- Teste em Chrome/Edge no Android para melhor compatibilidade.")
         st.exception(e)
-        # Enable fallback to built-in Streamlit camera input
+        # do not enable fallback here; keep only the custom camera component
         st.session_state['open_rear_cam'] = False
-        st.session_state['use_st_camera_input'] = True
 
-# Fallback: use Streamlit's camera_input when custom component fails or is unsupported
-if st.session_state.get('use_st_camera_input', False):
-    st.markdown("""
-        <style>
-        .stCameraFallback { position: fixed !important; inset: 0 0 0 0; width:100vw !important; height:100vh !important; z-index:9998; background: rgba(0,0,0,0.92); display:flex; align-items:center; justify-content:center }
-        .stCameraFallback video { width:100vw !important; height:100vh !important; object-fit:cover }
-        .fallback-controls { position: fixed; bottom: 28px; left:0; right:0; display:flex; justify-content:center; gap:16px; z-index:10001 }
-        .fallback-controls button { padding: 10px 14px; border-radius:8px }
-        </style>
-    """, unsafe_allow_html=True)
-
-    st.write("")
-    cam = st.camera_input("", key="st_camera_fallback")
-    if cam is not None:
-        try:
-            cam_bytes = cam.getvalue()
-            pil_img = Image.open(io.BytesIO(cam_bytes)).convert('RGB')
-            st.image(pil_img, use_column_width=True)
-            cols = st.columns([1,2,1])
-            with cols[0]:
-                if st.button("Refazer (fallback)", key="fallback_refazer"):
-                    if 'st_camera_fallback' in st.session_state:
-                        del st.session_state['st_camera_fallback']
-                    st.experimental_rerun()
-            with cols[2]:
-                if st.button("Confirmar (fallback)", key="fallback_confirm"):
-                    st.session_state['camera_image'] = pil_img
-                    st.session_state['use_st_camera_input'] = False
-                    run_analysis_on_image(st.session_state['camera_image'])
-        except Exception as e:
-            st.error(f"Erro ao processar imagem do fallback da câmera: {e}")
+# Note: removed Streamlit `camera_input` fallback — we use only the custom camera component.
 
 # Prioriza upload do usuário; se não houver, usa câmera capturada ou imagem colada (persistida em session_state)
 img = None
-pasted = st.session_state.get('pasted_image') if 'pasted_image' in st.session_state else None
 camera_img = st.session_state.get('camera_image') if 'camera_image' in st.session_state else None
-if uploaded_file is not None:
-    try:
-        img = Image.open(uploaded_file)
-    except Exception as e:
-        st.error(f"Erro ao abrir arquivo enviado: {e}")
-elif camera_img is not None:
+if camera_img is not None:
     img = camera_img
-elif pasted is not None:
-    img = pasted
 
 if img is not None:
     st.write("")  # espaço
