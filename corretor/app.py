@@ -10,6 +10,7 @@ import traceback
 import subprocess
 import time
 import platform
+import io
 
 from datetime import datetime
 
@@ -345,16 +346,60 @@ if st.session_state['show_uploader']:
 
 # Mostrar câmera quando ativada
 if st.session_state['camera_active']:
-    st.write("")  # espaço
-    cam = st.camera_input("Capturar foto")
+    # Fullscreen camera modal with Confirm/Redo
+    if 'camera_flash' not in st.session_state:
+        st.session_state['camera_flash'] = False
+
+    # Inject CSS to make camera input fullscreen and dark background
+    st.markdown(
+        """
+        <style>
+        .stCamera { position: fixed !important; inset: 0 0 0 0; width:100vw !important; height:100vh !important; z-index:9999; background: rgba(0,0,0,0.93); display:flex; align-items:center; justify-content:center }
+        .stCamera video { width: auto; height: 80vh; object-fit:cover; aspect-ratio:16/9 }
+        .camera-controls { position: fixed; bottom: 32px; left: 0; right:0; display:flex; justify-content:center; gap:12px; z-index:10000 }
+        .camera-button { padding: 12px 18px; border-radius:8px; background:#ffffff; color:#0b1220; border:none; font-weight:600 }
+        .camera-button.secondary { background: transparent; border: 1px solid rgba(255,255,255,0.12); color: #ffffff }
+        .shutter { position: fixed; inset:0; background: #fff; opacity:0; z-index:11000 }
+        .shutter.flash { animation: flash 0.35s ease; }
+        @keyframes flash { 0%{opacity:0} 40%{opacity:1} 100%{opacity:0} }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    cam = st.camera_input("", key="camera_modal_input")
+
+    # Preview frame and controls
     if cam is not None:
         try:
-            st.session_state['camera_image'] = Image.open(cam)
-            st.success("Foto capturada.")
-            st.session_state['camera_active'] = False
-            run_analysis_on_image(st.session_state['camera_image'])
+            # keep bytes to allow re-open if needed
+            cam_bytes = cam.getvalue()
+            pil_img = Image.open(io.BytesIO(cam_bytes)).convert('RGB')
+            st.image(pil_img, use_column_width=True)
+
+            # Controls: Confirm or Redo
+            cols = st.columns([1,1,1,1,1])
+            with cols[1]:
+                if st.button("Refazer", key="camera_redo"):
+                    # Clear temporary camera input by deleting session key
+                    if 'camera_modal_input' in st.session_state:
+                        del st.session_state['camera_modal_input']
+                    st.experimental_rerun()
+            with cols[3]:
+                if st.button("Confirmar", key="camera_confirm"):
+                    # flash effect
+                    st.session_state['camera_flash'] = True
+                    st.markdown('<div class="shutter flash"></div>', unsafe_allow_html=True)
+                    time.sleep(0.35)
+                    st.session_state['camera_flash'] = False
+                    # save image and close modal
+                    st.session_state['camera_image'] = pil_img
+                    st.session_state['camera_active'] = False
+                    # run analysis
+                    run_analysis_on_image(st.session_state['camera_image'])
+
         except Exception as e:
-            st.error(f"Erro ao processar imagem: {e}")
+            st.error(f"Erro ao processar imagem da câmera: {e}")
 
 # Prioriza upload do usuário; se não houver, usa câmera capturada ou imagem colada (persistida em session_state)
 img = None
