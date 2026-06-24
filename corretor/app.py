@@ -309,8 +309,8 @@ with row2_col2:
     if st.button("Câmera", use_container_width=True):
         st.session_state['open_rear_cam'] = True
         log_event("UI: Câmera button clicked; setting open_rear_cam=True")
-        # Force a rerun so the component is rendered immediately
-        st.experimental_rerun()
+        # Note: do NOT call st.experimental_rerun() here (caused exceptions in some envs).
+        # Streamlit will rerun naturally after this interaction and render the component.
 
 st.write("")  # espaço
 
