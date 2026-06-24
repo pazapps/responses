@@ -10,6 +10,9 @@ import traceback
 import subprocess
 import time
 import platform
+import io
+import base64
+import streamlit.components.v1 as components
 
 from datetime import datetime
 
@@ -233,22 +236,63 @@ cols = st.columns([1,1,1,1])
 with cols[0]:
     if st.button("📁 Upload"):
         st.session_state['show_uploader'] = not st.session_state['show_uploader']
-with cols[1]:
-    if ImageGrab is not None:
-        if st.button("📋 Colar"):
-            try:
-                _p = ImageGrab.grabclipboard()
-                if isinstance(_p, list):
-                    _p = None
-                if _p is not None:
-                    st.session_state['pasted_image'] = _p
-                    st.success("Imagem colada no clipboard.")
-                else:
-                    st.warning("Nenhuma imagem válida no clipboard.")
-            except Exception as e:
-                st.error(f"Erro ao acessar clipboard: {e}")
-    else:
-        st.button("📋 Colar", disabled=True)
+    with cols[1]:
+        if ImageGrab is not None:
+            if st.button("📋 Colar"):
+                try:
+                    _p = ImageGrab.grabclipboard()
+                    if isinstance(_p, list):
+                        _p = None
+                    if _p is not None:
+                        st.session_state['pasted_image'] = _p
+                        st.success("Imagem colada no clipboard.")
+                    else:
+                        st.warning("Nenhuma imagem válida no clipboard.")
+                except Exception as e:
+                    st.error(f"Erro ao acessar clipboard: {e}")
+        else:
+            # Fallback: provide a browser-based paste catcher using a small HTML/JS component
+            if st.button("📋 Colar (Navegador)"):
+                paste_component = components.html(
+                    """
+                    <html>
+                    <body style='background:#071022;color:#e6eef8;display:flex;align-items:center;justify-content:center;height:100%;'>
+                    <div id="msg" style='text-align:center'>Cole uma imagem aqui (Ctrl+V / Colar)</div>
+                    <script src="https://unpkg.com/@streamlit/component-lib@latest/dist/streamlit-component-lib.js"></script>
+                    <script>
+                      const msg = document.getElementById('msg');
+                      window.addEventListener('paste', async (e) => {
+                        const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                        for (const item of items) {
+                          if (item.type.indexOf('image') !== -1) {
+                            const blob = item.getAsFile();
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              const dataUrl = reader.result;
+                              Streamlit.setComponentValue(dataUrl);
+                            };
+                            reader.readAsDataURL(blob);
+                            return;
+                          }
+                        }
+                        Streamlit.setComponentValue(null);
+                      });
+                      window.focus();
+                    </script>
+                    </body>
+                    </html>
+                    """,
+                    height=220,
+                )
+                if paste_component:
+                    try:
+                        header, encoded = paste_component.split(',', 1)
+                        decoded = base64.b64decode(encoded)
+                        pil_img = Image.open(io.BytesIO(decoded)).convert('RGB')
+                        st.session_state['pasted_image'] = pil_img
+                        st.success('Imagem colada via navegador.')
+                    except Exception as e:
+                        st.error(f'Erro ao processar imagem colada: {e}')
 with cols[2]:
     # Captura de tela (Windows Tesourinha)
     if platform.system() == 'Windows':
@@ -343,5 +387,46 @@ if img is not None:
                         st.warning("Nenhuma imagem no clipboard.")
                 except Exception as e:
                     st.error(f"Erro ao acessar clipboard: {e}")
-        else:
-            st.button("Colar", disabled=True, use_container_width=True)
+                else:
+                        # For non-Windows, offer the browser paste button here too
+                        if st.button("Colar (Navegador)", use_container_width=True):
+                                paste_component = components.html(
+                                        """
+                                        <html>
+                                        <body style='background:#071022;color:#e6eef8;display:flex;align-items:center;justify-content:center;height:100%;'>
+                                        <div id="msg" style='text-align:center'>Cole uma imagem aqui (Ctrl+V / Colar)</div>
+                                        <script src="https://unpkg.com/@streamlit/component-lib@latest/dist/streamlit-component-lib.js"></script>
+                                        <script>
+                                            const msg = document.getElementById('msg');
+                                            window.addEventListener('paste', async (e) => {
+                                                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                                                for (const item of items) {
+                                                    if (item.type.indexOf('image') !== -1) {
+                                                        const blob = item.getAsFile();
+                                                        const reader = new FileReader();
+                                                        reader.onload = () => {
+                                                            const dataUrl = reader.result;
+                                                            Streamlit.setComponentValue(dataUrl);
+                                                        };
+                                                        reader.readAsDataURL(blob);
+                                                        return;
+                                                    }
+                                                }
+                                                Streamlit.setComponentValue(null);
+                                            });
+                                            window.focus();
+                                        </script>
+                                        </body>
+                                        </html>
+                                        """,
+                                        height=220,
+                                )
+                                if paste_component:
+                                        try:
+                                                header, encoded = paste_component.split(',', 1)
+                                                decoded = base64.b64decode(encoded)
+                                                pil_img = Image.open(io.BytesIO(decoded)).convert('RGB')
+                                                st.session_state['pasted_image'] = pil_img
+                                                st.success('Imagem colada via navegador.')
+                                        except Exception as e:
+                                                st.error(f'Erro ao processar imagem colada: {e}')
