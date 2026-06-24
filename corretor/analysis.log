@@ -27,3 +27,7 @@
 [2026-06-24T10:09:11.906891] analysis button clicked
 [2026-06-24T10:09:11.907796] calling call_gemini_vision
 [2026-06-24T10:09:21.641455] call_gemini_vision returned
+[2026-06-24T15:58:52.267315] UI: Câmera button clicked; setting open_rear_cam=True
+[2026-06-24T16:00:55.277515] UI: Câmera button clicked; setting open_rear_cam=True
+[2026-06-24T16:03:14.418593] UI: Câmera button clicked; setting open_rear_cam=True
+[2026-06-24T16:09:46.825101] UI: Câmera button clicked; setting open_rear_cam=True
