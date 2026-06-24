@@ -348,9 +348,44 @@ if st.session_state.get('open_rear_cam', False):
             run_analysis_on_image(st.session_state['camera_image'])
     except Exception as e:
         st.error("Erro ao abrir o componente de câmera.")
-        st.info("Possíveis causas: 'pyarrow' não instalado no ambiente usado pelo Streamlit, ou é necessário reiniciar o servidor Streamlit após instalar dependências.")
-        st.markdown("- Se você instalou `pyarrow` agora, pare o servidor e execute `streamlit run app.py` novamente.\n- Verifique permissões de câmera no navegador (permitir câmera, HTTPS).\n- Teste em Chrome/Edge no Android para melhor compatibilidade.)")
+        st.info("Possíveis causas: 'pyarrow' não instalado no ambiente usado pelo Streamlit, ou o navegador bloqueia vídeo dentro de iframes.")
+        st.markdown("- Se você instalou `pyarrow` agora, pare o servidor e execute `streamlit run app.py` novamente.\n- Verifique permissões de câmera no navegador (permitir câmera, HTTPS).\n- Teste em Chrome/Edge no Android para melhor compatibilidade.")
         st.exception(e)
+        # Enable fallback to built-in Streamlit camera input
+        st.session_state['open_rear_cam'] = False
+        st.session_state['use_st_camera_input'] = True
+
+# Fallback: use Streamlit's camera_input when custom component fails or is unsupported
+if st.session_state.get('use_st_camera_input', False):
+    st.markdown("""
+        <style>
+        .stCameraFallback { position: fixed !important; inset: 0 0 0 0; width:100vw !important; height:100vh !important; z-index:9998; background: rgba(0,0,0,0.92); display:flex; align-items:center; justify-content:center }
+        .stCameraFallback video { width:100vw !important; height:100vh !important; object-fit:cover }
+        .fallback-controls { position: fixed; bottom: 28px; left:0; right:0; display:flex; justify-content:center; gap:16px; z-index:10001 }
+        .fallback-controls button { padding: 10px 14px; border-radius:8px }
+        </style>
+    """, unsafe_allow_html=True)
+
+    st.write("")
+    cam = st.camera_input("", key="st_camera_fallback")
+    if cam is not None:
+        try:
+            cam_bytes = cam.getvalue()
+            pil_img = Image.open(io.BytesIO(cam_bytes)).convert('RGB')
+            st.image(pil_img, use_column_width=True)
+            cols = st.columns([1,2,1])
+            with cols[0]:
+                if st.button("Refazer (fallback)", key="fallback_refazer"):
+                    if 'st_camera_fallback' in st.session_state:
+                        del st.session_state['st_camera_fallback']
+                    st.experimental_rerun()
+            with cols[2]:
+                if st.button("Confirmar (fallback)", key="fallback_confirm"):
+                    st.session_state['camera_image'] = pil_img
+                    st.session_state['use_st_camera_input'] = False
+                    run_analysis_on_image(st.session_state['camera_image'])
+        except Exception as e:
+            st.error(f"Erro ao processar imagem do fallback da câmera: {e}")
 
 # Prioriza upload do usuário; se não houver, usa câmera capturada ou imagem colada (persistida em session_state)
 img = None
