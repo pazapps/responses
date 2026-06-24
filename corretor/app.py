@@ -360,6 +360,12 @@ camera_img = st.session_state.get('camera_image') if 'camera_image' in st.sessio
 if uploaded_file is not None:
     try:
         img = Image.open(uploaded_file)
+        st.session_state['uploaded_image'] = img
+        st.success("Arquivo enviado e carregado.")
+        # Evita rodar análise repetidas vezes em reruns
+        if not st.session_state.get('uploaded_processed', False):
+            st.session_state['uploaded_processed'] = True
+            run_analysis_on_image(img)
     except Exception as e:
         st.error(f"Erro ao abrir arquivo enviado: {e}")
 elif camera_img is not None:
