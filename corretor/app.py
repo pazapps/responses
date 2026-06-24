@@ -32,64 +32,61 @@ st.markdown(
     """
     <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body, #root { background: #f8f9fa; }
-    .stApp { color: #1a1a1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
-    
+    html, body, #root { background: #f7f7fb; }
+    .stApp { color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+
     /* Header clean */
-    .stApp>div:first-child { background: #ffffff; border-bottom: 1px solid #e8e8e8; padding: 20px 0 !important; }
-    
+    .stApp>div:first-child { background: #ffffff; border-bottom: 1px solid #eef2ff; padding: 18px 0 !important; }
+
     /* Main content clean */
-    .stApp>div:not(:first-child) { background: #f8f9fa; }
-    
-    /* Buttons: minimalista e responsivo */
+    .stApp>div:not(:first-child) { background: #f7f7fb; }
+
+    /* Buttons: modern flat */
     .stButton { margin: 6px 4px; }
     .stButton>button {
-        width: 100%; padding: 14px 16px !important; border-radius: 8px; font-size: 14px; font-weight: 500;
-        background: #2563eb; color: white; border: none;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        transition: all 0.15s ease;
+        width: 100%; padding: 14px 16px !important; border-radius: 10px; font-size: 15px; font-weight: 600;
+        background: #7c3aed; color: white; border: none;
+        box-shadow: 0 6px 18px rgba(124,58,237,0.12);
+        transition: all 0.14s ease;
         cursor: pointer;
     }
     .stButton>button:hover {
-        background: #1d4ed8;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
-        transform: translateY(-1px);
+        background: #6d28d9;
+        transform: translateY(-2px);
     }
     .stButton>button:disabled {
-        background: #d1d5db;
-        cursor: not-allowed;
-        transform: none;
+        background: #e6e7f8; color:#8b8fbf; cursor: not-allowed; transform: none;
     }
-    
+
     /* Input fields clean */
-    .stFileUploader label, .stCameraInput label { font-weight: 500; font-size: 13px; color: #6b7280; }
-    
+    .stFileUploader label, .stCameraInput label { font-weight: 600; font-size: 13px; color: #6b7280; }
+
     /* Camera: landscape forced, bounded, responsive */
-    .stCamera { max-width: 100%; height: auto; margin: 16px 0; border-radius: 8px; overflow: hidden; }
+    .stCamera { max-width: 100%; height: auto; margin: 16px 0; border-radius: 10px; overflow: hidden; }
     .stCamera video { 
-        width: 100%; height: auto; max-height: 60vh; object-fit: contain;
+        width: 100%; height: auto; max-height: 68vh; object-fit: cover;
         aspect-ratio: 16 / 9;
         display: block;
     }
     .stCamera canvas { 
-        width: 100%; height: auto; max-height: 60vh; object-fit: contain;
+        width: 100%; height: auto; max-height: 68vh; object-fit: cover;
         aspect-ratio: 16 / 9;
         display: block;
     }
-    
+
     /* Messages & alerts clean */
-    .stSuccess, .stError, .stWarning, .stInfo { border-radius: 8px; font-size: 13px; }
-    .stSuccess { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-    .stError { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-    
+    .stSuccess, .stError, .stWarning, .stInfo { border-radius: 10px; font-size: 13px; }
+    .stSuccess { background: #ecfdf5; color: #065f46; border: 1px solid #bbf7d0; }
+    .stError { background: #fff1f2; color: #9f1239; border: 1px solid #fecaca; }
+
     /* Spacing */
     .stMarkdown, .stText { line-height: 1.5; }
-    
+
     /* Responsive */
     @media (max-width: 640px) {
         .stApp { font-size: 13px; }
-        .stButton>button { padding: 12px 14px !important; font-size: 13px; }
-        .stCamera video, .stCamera canvas { max-height: 50vh; }
+        .stButton>button { padding: 12px 14px !important; font-size: 14px; }
+        .stCamera video, .stCamera canvas { max-height: 56vh; }
     }
     </style>
     """,
