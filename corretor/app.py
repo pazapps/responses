@@ -11,6 +11,7 @@ import subprocess
 import time
 import platform
 import io
+import base64
 
 from datetime import datetime
 
@@ -285,12 +286,12 @@ row2_col1, row2_col2 = st.columns(2, gap="small")
 
 # Linha 1
 with row1_col1:
-    if st.button("📤 Upload", use_container_width=True):
+    if st.button("Upload", use_container_width=True):
         st.session_state['show_uploader'] = not st.session_state['show_uploader']
 
 with row1_col2:
     if ImageGrab is not None:
-        if st.button("📋 Colar", use_container_width=True):
+        if st.button("Colar", use_container_width=True):
             try:
                 _p = ImageGrab.grabclipboard()
                 if isinstance(_p, list):
@@ -303,7 +304,7 @@ with row1_col2:
             except Exception as e:
                 st.error(f"Erro ao acessar clipboard: {e}")
     else:
-        st.button("📋 Colar", disabled=True, use_container_width=True)
+        st.button("Colar", disabled=True, use_container_width=True)
 
 # Linha 2
 with row2_col1:
@@ -334,8 +335,18 @@ with row2_col1:
         st.button("🖼️ Captura", disabled=True, use_container_width=True)
 
 with row2_col2:
-    if st.button("📷 Câmera", use_container_width=True):
-        st.session_state['camera_active'] = not st.session_state['camera_active']
+    if st.button("Câmera", use_container_width=True):
+        # Open custom camera component that prefers the rear camera
+        try:
+            from camera_component import camera_component
+            data = camera_component(key='rear_cam', height=800)
+            if data:
+                header, b64 = data.split(',', 1) if ',' in data else (None, data)
+                img_bytes = base64.b64decode(b64)
+                st.session_state['camera_image'] = Image.open(io.BytesIO(img_bytes)).convert('RGB')
+                run_analysis_on_image(st.session_state['camera_image'])
+        except Exception as e:
+            st.error(f"Erro ao abrir a câmera: {e}")
 
 st.write("")  # espaço
 
@@ -351,21 +362,37 @@ if st.session_state['camera_active']:
         st.session_state['camera_flash'] = False
 
     # Inject CSS to make camera input fullscreen and dark background
-    st.markdown(
-        """
-        <style>
-        .stCamera { position: fixed !important; inset: 0 0 0 0; width:100vw !important; height:100vh !important; z-index:9999; background: rgba(0,0,0,0.93); display:flex; align-items:center; justify-content:center }
-        .stCamera video { width: auto; height: 80vh; object-fit:cover; aspect-ratio:16/9 }
-        .camera-controls { position: fixed; bottom: 32px; left: 0; right:0; display:flex; justify-content:center; gap:12px; z-index:10000 }
-        .camera-button { padding: 12px 18px; border-radius:8px; background:#ffffff; color:#0b1220; border:none; font-weight:600 }
-        .camera-button.secondary { background: transparent; border: 1px solid rgba(255,255,255,0.12); color: #ffffff }
-        .shutter { position: fixed; inset:0; background: #fff; opacity:0; z-index:11000 }
-        .shutter.flash { animation: flash 0.35s ease; }
-        @keyframes flash { 0%{opacity:0} 40%{opacity:1} 100%{opacity:0} }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
+        st.markdown(
+                """
+                <style>
+                /* Fullscreen overlay */
+                .stCameraOverlay { position: fixed !important; inset: 0 0 0 0; width:100vw !important; height:100vh !important; z-index:9998; background: rgba(0,0,0,0.92); display:block }
+                /* Force any video element to cover the viewport */
+                video { position: fixed !important; top:0; left:0; width:100vw !important; height:100vh !important; object-fit:cover; z-index:9999 }
+                /* Controls styling will be applied via JS to avoid Streamlit class issues */
+                .shutter { position: fixed; inset:0; background: #fff; opacity:0; z-index:11000 }
+                .shutter.flash { animation: flash 0.35s ease; }
+                @keyframes flash { 0%{opacity:0} 40%{opacity:1} 100%{opacity:0} }
+                </style>
+
+                <script>
+                // Periodically style the Confirmar and Refazer buttons to be fixed on screen
+                function styleCameraButtons(){
+                    document.querySelectorAll('button').forEach(b=>{
+                        const txt = b.innerText ? b.innerText.trim() : '';
+                        if(txt === 'Confirmar'){
+                            Object.assign(b.style, {position:'fixed', right:'20px', bottom:'80px', zIndex:10001, padding:'12px 18px', borderRadius:'8px', background:'#ffffff', color:'#0b1220', border:'none', fontWeight:600});
+                        }
+                        if(txt === 'Refazer'){
+                            Object.assign(b.style, {position:'fixed', left:'20px', bottom:'80px', zIndex:10001, padding:'12px 18px', borderRadius:'8px', background:'transparent', border:'1px solid rgba(255,255,255,0.12)', color:'#ffffff'});
+                        }
+                    });
+                }
+                setInterval(styleCameraButtons, 350);
+                </script>
+                """,
+                unsafe_allow_html=True,
+        )
 
     cam = st.camera_input("", key="camera_modal_input")
 
