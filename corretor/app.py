@@ -329,5 +329,19 @@ if img is not None:
         st.image(img, caption="Imagem Carregada", width=400)
 
     with col2:
-        if st.button("🔍 ANALISAR E CORRIGIR"):
-            run_analysis_on_image(img)
+        # Only enable Paste on Windows to avoid platform clipboard tool dependencies on Linux/Android
+        if platform.system() == 'Windows' and ImageGrab is not None:
+            if st.button("Colar", use_container_width=True):
+                try:
+                    _p = ImageGrab.grabclipboard()
+                    if isinstance(_p, list):
+                        _p = None
+                    if _p is not None:
+                        st.session_state['pasted_image'] = _p
+                        st.success("Imagem colada.")
+                    else:
+                        st.warning("Nenhuma imagem no clipboard.")
+                except Exception as e:
+                    st.error(f"Erro ao acessar clipboard: {e}")
+        else:
+            st.button("Colar", disabled=True, use_container_width=True)
