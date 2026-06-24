@@ -31,3 +31,10 @@
 [2026-06-24T16:00:55.277515] UI: Câmera button clicked; setting open_rear_cam=True
 [2026-06-24T16:03:14.418593] UI: Câmera button clicked; setting open_rear_cam=True
 [2026-06-24T16:09:46.825101] UI: Câmera button clicked; setting open_rear_cam=True
+[2026-06-24T16:16:54.063243] analysis button clicked
+[2026-06-24T16:16:54.064372] calling call_gemini_vision
+[2026-06-24T16:17:06.304145] call_gemini_vision error: 
+  No API_KEY or ADC found. Please either:
+    - Set the `GOOGLE_API_KEY` environment variable.
+    - Manually pass the key with `genai.configure(api_key=my_api_key)`.
+    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information.
