@@ -354,7 +354,10 @@ if st.session_state.get('open_rear_cam', False):
             st.session_state['open_rear_cam'] = False
             run_analysis_on_image(st.session_state['camera_image'])
     except Exception as e:
-        st.error(f"Erro ao abrir a câmera: {e}")
+        st.error("Erro ao abrir o componente de câmera.")
+        st.info("Possíveis causas: 'pyarrow' não instalado no ambiente usado pelo Streamlit, ou é necessário reiniciar o servidor Streamlit após instalar dependências.")
+        st.markdown("- Se você instalou `pyarrow` agora, pare o servidor e execute `streamlit run app.py` novamente.\n- Verifique permissões de câmera no navegador (permitir câmera, HTTPS).\n- Teste em Chrome/Edge no Android para melhor compatibilidade.)")
+        st.exception(e)
 
 # Prioriza upload do usuário; se não houver, usa câmera capturada ou imagem colada (persistida em session_state)
 img = None
